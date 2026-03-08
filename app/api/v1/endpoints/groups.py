@@ -4,12 +4,12 @@ from sqlmodel import Session, select
 from app.db.session import get_session
 from app.core.deps import get_current_user
 from app.models.models import User, FamilyGroup, FamilyGroupMember, UserRole, Invitation, InvitationStatus
-from app.schemas.schemas import FamilyGroupCreate, FamilyGroupRead, InvitationCreate, InvitationRead, GroupMemberUpdate
+from app.schemas.schemas import FamilyGroupCreate, FamilyGroupRead, InvitationCreate, InvitationRead, GroupMemberUpdate, Response
 import secrets
 
 router = APIRouter()
 
-@router.post("/", response_model=FamilyGroupRead)
+@router.post("/", response_model=Response[FamilyGroupRead])
 def create_group(
     group_in: FamilyGroupCreate,
     db: Session = Depends(get_session),
@@ -32,9 +32,9 @@ def create_group(
     )
     db.add(membership)
     db.commit()
-    return group
+    return Response(success=True, message="Group created successfully", data=group)
 
-@router.get("/", response_model=List[FamilyGroupRead])
+@router.get("/", response_model=Response[List[FamilyGroupRead]])
 def list_my_groups(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_session)
@@ -42,9 +42,9 @@ def list_my_groups(
     # Retrieve all groups where the current user is a member
     stmt = select(FamilyGroup).join(FamilyGroupMember).where(FamilyGroupMember.user_id == current_user.id)
     groups = db.exec(stmt).all()
-    return groups
+    return Response(success=True, message="Groups retrieved successfully", data=groups)
 
-@router.post("/{group_id}/invite", response_model=InvitationRead)
+@router.post("/{group_id}/invite", response_model=Response[InvitationRead])
 def invite_user(
     group_id: int,
     inv_in: InvitationCreate,
@@ -71,9 +71,9 @@ def invite_user(
     db.add(invitation)
     db.commit()
     db.refresh(invitation)
-    return invitation
+    return Response(success=True, message="Invitation created successfully", data=invitation)
 
-@router.post("/join/{token}", response_model=FamilyGroupRead)
+@router.post("/join/{token}", response_model=Response[FamilyGroupRead])
 def join_group(
     token: str,
     db: Session = Depends(get_session),
@@ -98,7 +98,7 @@ def join_group(
         db.add(invitation)
         db.commit()
         group = db.get(FamilyGroup, invitation.family_group_id)
-        return group
+        return Response(success=True, message="User already a member", data=group)
 
     # Add member
     membership = FamilyGroupMember(
@@ -114,9 +114,9 @@ def join_group(
     
     db.commit()
     group = db.get(FamilyGroup, invitation.family_group_id)
-    return group
+    return Response(success=True, message="Joined group successfully", data=group)
 
-@router.patch("/{group_id}/members/{user_id}", response_model=GroupMemberUpdate)
+@router.patch("/{group_id}/members/{user_id}", response_model=Response[GroupMemberUpdate])
 def update_member_role(
     group_id: int,
     user_id: int,
@@ -146,4 +146,4 @@ def update_member_role(
     db.add(target_member)
     db.commit()
     db.refresh(target_member)
-    return target_member
+    return Response(success=True, message="Role updated successfully", data=target_member)

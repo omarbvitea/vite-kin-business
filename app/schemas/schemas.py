@@ -85,3 +85,8 @@ class InvitationRead(BaseModel):
 
 class GroupMemberUpdate(BaseModel):
     role: UserRole
+
+class Response(BaseModel, Generic[T]):
+    success: bool
+    message: str
+    data: Optional[T] = None

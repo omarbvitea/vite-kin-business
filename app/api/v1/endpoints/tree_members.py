@@ -4,11 +4,11 @@ from sqlmodel import Session, select, or_
 from app.db.session import get_session
 from app.core.deps import get_current_user
 from app.models.models import User, FamilyGroup, FamilyGroupMember, UserRole, FamilyTreeMember, ParentChildRelationship, PartnerRelationship, Comment
-from app.schemas.schemas import FamilyTreeMemberCreate, FamilyTreeMemberRead, ParentChildCreate, PartnerCreate, CommentCreate, CommentRead
+from app.schemas.schemas import FamilyTreeMemberCreate, FamilyTreeMemberRead, ParentChildCreate, PartnerCreate, CommentCreate, CommentRead, Response
 
 router = APIRouter()
 
-@router.post("/{group_id}/members", response_model=FamilyTreeMemberRead)
+@router.post("/{group_id}/members", response_model=Response[FamilyTreeMemberRead])
 def create_tree_member(
     group_id: int,
     member_in: FamilyTreeMemberCreate,
@@ -32,9 +32,9 @@ def create_tree_member(
     db.add(tree_member)
     db.commit()
     db.refresh(tree_member)
-    return tree_member
+    return Response(success=True, message="Member created successfully", data=tree_member)
 
-@router.get("/{group_id}/members", response_model=List[FamilyTreeMemberRead])
+@router.get("/{group_id}/members", response_model=Response[List[FamilyTreeMemberRead]])
 def get_tree_members(
     group_id: int,
     db: Session = Depends(get_session),
@@ -50,9 +50,10 @@ def get_tree_members(
 
     # List tree members
     stmt_members = select(FamilyTreeMember).where(FamilyTreeMember.family_group_id == group_id)
-    return db.exec(stmt_members).all()
+    members = db.exec(stmt_members).all()
+    return Response(success=True, message="Members retrieved successfully", data=members)
 
-@router.post("/{group_id}/relationships/parent-child", response_model=ParentChildCreate)
+@router.post("/{group_id}/relationships/parent-child", response_model=Response[ParentChildCreate])
 def add_parent_child_relationship(
     group_id: int,
     rel_in: ParentChildCreate,
@@ -78,9 +79,9 @@ def add_parent_child_relationship(
     rel = ParentChildRelationship(parent_id=rel_in.parent_id, child_id=rel_in.child_id)
     db.add(rel)
     db.commit()
-    return rel
+    return Response(success=True, message="Relationship added successfully", data=rel)
 
-@router.post("/{group_id}/members/{member_id}/relationships/partners", response_model=PartnerCreate)
+@router.post("/{group_id}/members/{member_id}/relationships/partners", response_model=Response[PartnerCreate])
 def add_partner_relationship(
     group_id: int,
     member_id: int,
@@ -109,9 +110,9 @@ def add_partner_relationship(
     db.add(rel)
     db.add(rel_inv)
     db.commit()
-    return rel
+    return Response(success=True, message="Relationship added successfully", data=rel)
 
-@router.post("/{group_id}/members/{member_id}/comments", response_model=CommentRead)
+@router.post("/{group_id}/members/{member_id}/comments", response_model=Response[CommentRead])
 def add_comment(
     group_id: int,
     member_id: int,
@@ -141,9 +142,9 @@ def add_comment(
     db.add(comment)
     db.commit()
     db.refresh(comment)
-    return comment
+    return Response(success=True, message="Comment added successfully", data=comment)
 
-@router.get("/{group_id}/members/{member_id}/comments", response_model=List[CommentRead])
+@router.get("/{group_id}/members/{member_id}/comments", response_model=Response[List[CommentRead]])
 def get_comments(
     group_id: int,
     member_id: int,
@@ -160,4 +161,5 @@ def get_comments(
 
     # List comments
     stmt_comments = select(Comment).where(Comment.tree_member_id == member_id)
-    return db.exec(stmt_comments).all()
+    comments = db.exec(stmt_comments).all()
+    return Response(success=True, message="Comments retrieved successfully", data=comments)
