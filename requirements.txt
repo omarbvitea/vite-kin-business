@@ -1,7 +1,9 @@
 fastapi==0.115.0
 sqlmodel==0.0.21
 alembic==1.13.3
-psycopg[binary]==3.2.3
+psycopg[binary]==3.3.3
+psycopg2-binary==2.9.10
+bcrypt==4.0.1
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.12

@@ -28,7 +28,7 @@ A production-ready FastAPI backend for managing family groups and their biologic
 1. Clone the repository (if applicable) and navigate to the project directory.
 2. Build and start the services:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 3. The API will be available at `http://localhost:8000`.
 4. Interactive Swagger documentation: `http://localhost:8000/docs`.
@@ -80,7 +80,7 @@ curl -X POST "http://localhost:8000/api/v1/groups/1/members" \
 │   ├── schemas/          # Pydantic schemas (DTOs)
 │   └── main.py           # App entry point
 ├── Dockerfile            # Backend Docker image
-├── docker-compose.yml    # Full stack orchestration
+├── compose.yaml          # Full stack orchestration
 └── requirements.txt      # Python dependencies
 ```
 
@@ -91,8 +91,8 @@ curl -X POST "http://localhost:8000/api/v1/groups/1/members" \
 To apply or generate migrations inside the container:
 
 ```bash
-docker-compose exec backend alembic revision --autogenerate -m "Initial migration"
-docker-compose exec backend alembic upgrade head
+docker compose exec backend alembic revision --autogenerate -m "Initial migration"
+docker compose exec backend alembic upgrade head
 ```
 
 Note: Tables are automatically created during the first run for convenience.
